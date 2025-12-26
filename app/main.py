@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 
 from app.api.v1 import auth, bootstrap, categories, dashboard, entries, items, metrics, roles, users, warehouses
 from app.core.config import settings
@@ -41,6 +42,10 @@ except Exception as e:
     print(f"⚠ Seed error (may be OK if already seeded): {e}")
 
 app = FastAPI(title="Stock Taker")
+
+# GZip compression - reduces response size by 60-80%
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.session_secret,

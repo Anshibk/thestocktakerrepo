@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import asyncio
 
@@ -15,6 +16,29 @@ from app.core.deps import get_current_user
 from app.core.realtime import entry_event_broker
 
 settings.validate_runtime()
+
+# Auto-run migrations on startup (for cloud deployment)
+def run_migrations():
+    try:
+        from alembic.config import Config
+        from alembic import command
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        print("✓ Database migrations completed successfully")
+    except Exception as e:
+        print(f"⚠ Migration error (may be OK if already up to date): {e}")
+
+# Run migrations before app starts
+if os.getenv("RUN_MIGRATIONS", "true").lower() == "true":
+    run_migrations()
+
+# Seed default data
+try:
+    from app.db.seed import seed
+    seed()
+    print("✓ Database seeded successfully")
+except Exception as e:
+    print(f"⚠ Seed error (may be OK if already seeded): {e}")
 
 app = FastAPI(title="Stock Taker")
 app.add_middleware(

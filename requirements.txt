@@ -1,7 +1,7 @@
 fastapi
 uvicorn[standard]
 SQLAlchemy>=2
-psycopg[binary]
+psycopg2-binary
 alembic
 python-dotenv
 Jinja2

@@ -4,14 +4,21 @@ from urllib.parse import quote_plus
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.deps import get_db
 from app.schemas.auth import AuthResponse
 from app.services import auth_service
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+class DemoLoginRequest(BaseModel):
+    name: str
+    email: str
 
 
 @router.get("/google/start")
@@ -48,4 +55,22 @@ def google_oauth_callback(
 @router.post("/logout", response_model=AuthResponse)
 def logout(request: Request):
     request.session.clear()
+    return AuthResponse(ok=True)
+
+
+@router.post("/demo-login", response_model=AuthResponse)
+def demo_login(
+    request: Request,
+    body: DemoLoginRequest,
+    db: Session = Depends(get_db),
+):
+    """Demo login for testing when OPEN_SIGNUP=true and Google OAuth is not configured."""
+    if not settings.open_signup:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demo login is only available when OPEN_SIGNUP is enabled",
+        )
+    
+    user = auth_service.get_or_create_demo_user(db, body.email.strip(), body.name.strip())
+    request.session["user_id"] = user.id
     return AuthResponse(ok=True)

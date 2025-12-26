@@ -62,7 +62,16 @@ def root(request: Request):
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    google_oauth_configured = bool(
+        settings.google_client_id and 
+        settings.google_client_secret and 
+        settings.google_redirect_uri
+    )
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "google_oauth_configured": google_oauth_configured,
+        "open_signup": settings.open_signup,
+    })
 
 
 @app.get("/dashboard", response_class=HTMLResponse)

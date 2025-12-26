@@ -34,9 +34,14 @@
     <div class="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl space-y-6 border border-white/40">
         <div class="text-center space-y-2">
           <h1 class="text-3xl font-semibold text-slate-800">Stock Taker</h1>
+          {% if google_oauth_configured %}
           <p class="text-sm text-slate-600">Use your Gmail account or invitation code to access the workspace.</p>
+          {% else %}
+          <p class="text-sm text-slate-600">Enter your details to access the workspace.</p>
+          {% endif %}
         </div>
       <div class="space-y-4">
+        {% if google_oauth_configured %}
         <p class="text-sm text-slate-600 text-center">Sign in with your Gmail account to continue.</p>
         <button id="btn-google-signin" class="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl py-2.5 font-semibold shadow-lg shadow-sky-600/30 transition">
           <span>🔐</span>
@@ -59,6 +64,23 @@
             <p id="invite-error" class="text-sm text-red-600 hidden text-center">Enter a valid invitation code.</p>
           </div>
         </div>
+        {% else %}
+        <!-- Demo Login Form (when Google OAuth not configured) -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1" for="demo-name">Your Name</label>
+            <input id="demo-name" type="text" class="w-full border border-slate-300/70 rounded-xl px-3 py-2.5 bg-white/80 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Enter your name" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1" for="demo-email">Email</label>
+            <input id="demo-email" type="email" class="w-full border border-slate-300/70 rounded-xl px-3 py-2.5 bg-white/80 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Enter your email" required />
+          </div>
+          <button id="btn-demo-login" class="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl py-2.5 font-semibold shadow-lg shadow-sky-600/30 transition">
+            <span>🚀</span>
+            <span>Continue</span>
+          </button>
+        </div>
+        {% endif %}
         <p id="error" class="text-sm text-red-600 hidden text-center"></p>
       </div>
     </div>
@@ -198,5 +220,46 @@ const errorParam = params.get('error');
 if (errorParam) {
   showError(decodeError(errorParam));
 }
+
+// Demo login handler (when Google OAuth not configured)
+document.getElementById('btn-demo-login')?.addEventListener('click', async (event) => {
+  event.preventDefault();
+  showError('');
+  
+  const name = document.getElementById('demo-name')?.value?.trim();
+  const email = document.getElementById('demo-email')?.value?.trim();
+  
+  if (!name) {
+    showError('Please enter your name.');
+    return;
+  }
+  if (!email) {
+    showError('Please enter your email.');
+    return;
+  }
+  if (!email.includes('@')) {
+    showError('Please enter a valid email address.');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/v1/auth/demo-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email }),
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.ok) {
+      const nextParam = params.get('next');
+      window.location.href = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard';
+    } else {
+      showError(data.detail || 'Login failed. Please try again.');
+    }
+  } catch (err) {
+    showError('Network error. Please try again.');
+  }
+});
 </script>
 {% endblock %}

@@ -319,3 +319,34 @@ def complete_google_oauth(db: Session, request: Request, code: str, state_token:
     request.session["user_id"] = str(user.id)
     request.session["role_id"] = str(user.role_id)
     return next_url or "/dashboard"
+
+
+def get_or_create_demo_user(db: Session, email: str, name: str) -> User:
+    """Get or create a user for demo login (when OPEN_SIGNUP=true)."""
+    normalized_email = email.strip().lower()
+    
+    # Check if user already exists
+    user = db.query(User).filter(func.lower(User.email) == normalized_email).one_or_none()
+    if user:
+        return user
+    
+    # Create new user with default role
+    role = _pick_role_for_open_signup(db)
+    user = User(
+        name=name or normalized_email.split("@")[0],
+        username=normalized_email,
+        email=normalized_email,
+        google_sub=None,
+        password=None,
+        role_id=role.id,
+        parent_admin_id=None,
+        dashboard_share_enabled=False,
+        is_active=True,
+        invitation_token=None,
+        invited_at=None,
+        invited_by_id=None,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

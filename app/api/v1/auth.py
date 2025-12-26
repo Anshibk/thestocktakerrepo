@@ -72,5 +72,6 @@ def demo_login(
         )
     
     user = auth_service.get_or_create_demo_user(db, body.email.strip(), body.name.strip())
-    request.session["user_id"] = user.id
+    request.session["user_id"] = str(user.id)
+    request.session["role_id"] = str(user.role_id)
     return AuthResponse(ok=True)

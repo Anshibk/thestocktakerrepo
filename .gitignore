@@ -1,0 +1,37 @@
+﻿# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+.env
+.env.*
+# Google OAuth client secret downloads
+client_secret*.json
+*apps.googleusercontent.com.json
+# Editor
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln
+# OS
+Thumbs.db
+.DS_Store
+# Virtual env
+.venv/
+# Build
+build/
+dist/
+*.egg-info/
+# Database
+*.sqlite3
+# node
+node_modules/
+# logs
+*.log
+# compiled assets
+static/*.map
